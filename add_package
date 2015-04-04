@@ -1,0 +1,12 @@
+#!/bin/sh
+
+default_config="$(dirname $0)/pkg-scripts-config.sh"
+if [ -r "${PKG_SCRIPTS_CONFIG}" ]; then
+    . "${PKG_SCRIPTS_CONFIG}"
+elif [ -r "${default_config}" ]; then
+    . "${default_config}"
+fi
+: ${BUILD_JAIL:?"This script requires BUILD_JAIL var to contain the name of poudriere jail"}
+: ${PORTS_TREE:='default'}
+
+poudriere bulk -j "${BUILD_JAIL}" -p "${PORTS_TREE}" "$@"

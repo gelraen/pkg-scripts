@@ -1,0 +1,23 @@
+#!/bin/sh
+
+default_config="$(dirname $0)/pkg-scripts-config.sh"
+if [ -r "${PKG_SCRIPTS_CONFIG}" ]; then
+	. "${PKG_SCRIPTS_CONFIG}"
+elif [ -r "${default_config}" ]; then
+	. "${default_config}"
+fi
+: ${BUILD_JAIL:?"This script requires BUILD_JAIL var to contain the name of poudriere jail"}
+: ${PORTS_TREE:='default'}
+
+PKG_LIST=$(mktemp -t packages)
+
+echo "##### Updating ports tree '${PORTS_TREE}'..."
+poudriere ports -u -p "${PORTS_TREE}"
+
+echo '##### Listing all installed packages...'
+pkg query -e '%a == 0' '%o' > "${PKG_LIST}"
+
+echo "##### Starting build in jail '${BUILD_JAIL}'"
+poudriere bulk -f "${PKG_LIST}" -j "${BUILD_JAIL}" -p "${PORTS_TREE}"
+
+rm "${PKG_LIST}"
